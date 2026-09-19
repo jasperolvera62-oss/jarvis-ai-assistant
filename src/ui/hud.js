@@ -24,6 +24,7 @@
     storageVal: $("storage-val"),
     currentTask: $("current-task"),
     appList: $("app-list"),
+    launchPanel: $("launch-panel"),
     launchGrid: $("launch-grid"),
     btnSettings: $("btn-settings"),
     btnReset: $("btn-reset"),
@@ -142,6 +143,12 @@
         els.diagVoice.textContent = msg.data.config?.voice?.enabled === false ? "OFF" : "ON";
         if (msg.data.memoryStats) els.diagMemory.textContent = msg.data.memoryStats.total;
         if (msg.data.mode) applyMode(msg.data.mode);
+        // Quick launch only works on the host running the server (Windows desktop).
+        if (msg.data.systemInfo?.platform && msg.data.systemInfo.platform !== "win32") {
+          if (els.launchPanel) {
+            els.launchPanel.style.display = "none";
+          }
+        }
         break;
       case "mode_change":
         applyMode(msg.data.mode);
