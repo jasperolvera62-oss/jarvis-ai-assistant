@@ -1,0 +1,12 @@
+node_modules/
+dist/
+data/
+logs/
+VelocityEngine/
+.env
+.env.local
+*.log
+tmp-*
+thumbs.db
+.DS_Store
+*.obj

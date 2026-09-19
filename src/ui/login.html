@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J.A.R.V.I.S. &middot; Access</title>
+<style>
+  :root {
+    --bg: #03060d;
+    --panel: #0a1220;
+    --line: #1b2c44;
+    --cyan: #38b6ff;
+    --cyan-dim: #1b5d8a;
+    --text: #cfe3f5;
+    --text-dim: #5f7f8a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: radial-gradient(1200px 600px at 50% -10%, #0b1a2e 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .gate {
+    width: min(420px, 90vw);
+    background: linear-gradient(180deg, var(--panel), #060b16);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 40px 36px 32px;
+    box-shadow: 0 0 40px rgba(56, 182, 255, 0.08), inset 0 0 40px rgba(0,0,0,0.4);
+    position: relative;
+  }
+  .gate::before {
+    content: "";
+    position: absolute; top: 0; left: 8%; right: 8%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  }
+  .logo { text-align: center; margin-bottom: 8px; }
+  .logo .rings {
+    width: 56px; height: 56px; margin: 0 auto 14px;
+    border: 2px solid var(--cyan-dim);
+    border-radius: 50%;
+    border-top-color: var(--cyan);
+    animation: spin 3s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .logo h1 {
+    font-size: 17px; letter-spacing: 4px; color: var(--cyan);
+    font-weight: 300; text-transform: uppercase;
+    text-shadow: 0 0 12px rgba(56,182,255,0.45);
+  }
+  .logo p { font-size: 11px; letter-spacing: 2px; color: var(--text-dim); margin-top: 6px; }
+  form { margin-top: 28px; }
+  label { display: block; font-size: 10px; letter-spacing: 2px; color: var(--text-dim); margin-bottom: 8px; text-transform: uppercase; }
+  input {
+    width: 100%; padding: 12px 14px;
+    background: #04080f; color: var(--text);
+    border: 1px solid var(--line); border-radius: 8px;
+    font-size: 16px; letter-spacing: 6px; text-align: center;
+    outline: none;
+  }
+  input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(56,182,255,0.15); }
+  button {
+    width: 100%; margin-top: 18px; padding: 12px;
+    background: linear-gradient(180deg, #16619b, #0e456e);
+    color: #dff1ff; border: 1px solid var(--cyan-dim);
+    border-radius: 8px; font-size: 14px; letter-spacing: 3px;
+    cursor: pointer; text-transform: uppercase;
+  }
+  button:hover { background: linear-gradient(180deg, #1b74b5, #12537f); }
+  .error { display: none; margin-top: 14px; color: #ff6b6b; font-size: 12px; text-align: center; letter-spacing: 1px; }
+  .foot { margin-top: 24px; text-align: center; color: var(--text-dim); font-size: 10px; letter-spacing: 2px; }
+</style>
+</head>
+<body>
+  <div class="gate">
+    <div class="logo">
+      <div class="rings"></div>
+      <h1>J.A.R.V.I.S.</h1>
+      <p>RESTRICTED ACCESS</p>
+    </div>
+    <form id="loginForm" autocomplete="off">
+      <label for="pin">Access PIN</label>
+      <input type="password" id="pin" name="pin" inputmode="numeric" maxlength="64" autofocus autocomplete="off">
+      <button type="submit">Enter</button>
+      <div class="error" id="error">ACCESS DENIED &mdash; INCORRECT PIN</div>
+    </form>
+    <div class="foot">UNAUTHORIZED USE PROHIBITED</div>
+  </div>
+  <script>
+    const form = document.getElementById("loginForm");
+    const pin = document.getElementById("pin");
+    const error = document.getElementById("error");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      error.style.display = "none";
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: pin.value }),
+      });
+      if (res.ok) {
+        window.location.href = "/";
+      } else {
+        error.style.display = "block";
+        pin.value = "";
+        pin.focus();
+      }
+    });
+  </script>
+</body>
+</html>

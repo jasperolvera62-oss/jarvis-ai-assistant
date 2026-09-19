@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J.A.R.V.I.S. | MARK VII SYSTEM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/hud.css">
+</head>
+<body class="state-idle">
+
+  <div class="vignette"></div>
+  <div class="grid-bg"></div>
+  <div class="scanlines"></div>
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="topbar">
+    <div class="tb-left">
+      <span class="tb-brand">J.A.R.V.I.S.</span>
+      <span class="tb-sep">|</span>
+      <span class="tb-sys">MARK VII SYSTEM</span>
+      <span class="tb-badge online" id="top-status">ONLINE</span>
+    </div>
+    <div class="tb-right">
+      <span class="tb-metric"><i>CPU</i><b id="top-cpu">--%</b></span>
+      <span class="tb-metric"><i>MEM</i><b id="top-mem">--%</b></span>
+      <span class="tb-sep">|</span>
+      <span class="tb-clock" id="clock">--:--</span>
+    </div>
+  </header>
+
+  <!-- ===== MAIN WORKSPACE ===== -->
+  <main class="workspace">
+
+    <!-- LEFT : CONVERSATION -->
+    <section class="panel panel-left glass">
+      <div class="panel-head">
+        <span class="panel-title">CONVERSATION</span>
+        <span class="panel-id">CH-01</span>
+      </div>
+      <div class="conversation" id="conversation">
+        <div class="convo-empty" id="convo-empty">
+          <div class="convo-empty-line"></div>
+          <span>Awaiting input, sir.</span>
+          <div class="convo-empty-line"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER : CORE VISUALIZER -->
+    <section class="panel panel-center">
+      <canvas id="core-canvas"></canvas>
+      <div class="core" id="core">
+        <div class="core-ring ring-a"></div>
+        <div class="core-ring ring-b"></div>
+        <div class="core-ring ring-c"></div>
+        <div class="core-ring ring-d"></div>
+        <div class="core-halo" id="core-halo"></div>
+        <div class="core-inner">
+          <h1 class="core-name">J.A.R.V.I.S.</h1>
+          <div class="core-sub" id="core-sub">
+            <span id="core-state">ONLINE</span>
+            <span id="core-detail">SYSTEMS NOMINAL</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="thinking-viz" id="thinking-viz" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </section>
+
+    <!-- RIGHT : SYSTEM STATUS -->
+    <section class="panel panel-right glass">
+      <div class="panel-head">
+        <span class="panel-title">SYSTEM STATUS</span>
+        <span class="panel-id">SYS-OK</span>
+      </div>
+
+      <div class="sys-block">
+        <div class="stat">
+          <label>CPU</label>
+          <div class="meters">
+            <div class="bar"><i id="bar-cpu" style="width:0%"></i></div>
+            <b id="pct-cpu">--%</b>
+          </div>
+        </div>
+
+        <div class="stat">
+          <label>MEMORY</label>
+          <div class="meters">
+            <div class="bar"><i id="bar-mem" style="width:0%"></i></div>
+            <b id="pct-mem">--%</b>
+          </div>
+        </div>
+
+        <div class="stat">
+          <label>GPU</label>
+          <div class="meters">
+            <div class="bar"><i id="bar-gpu" style="width:0%"></i></div>
+            <b id="pct-gpu">--%</b>
+          </div>
+        </div>
+
+        <div class="stat stat-plain">
+          <label>NETWORK</label>
+          <div class="plain-val"><span class="dot-glow" id="net-dot"></span><b id="net-val">--</b></div>
+        </div>
+
+        <div class="stat stat-plain">
+          <label>STORAGE</label>
+          <div class="plain-val"><b id="storage-val">--</b></div>
+        </div>
+      </div>
+
+      <div class="sys-block">
+        <div class="panel-title small">CURRENT TASK</div>
+        <div class="current-task" id="current-task">Standing by.</div>
+      </div>
+
+      <div class="sys-block">
+        <div class="panel-title small">ACTIVE APPLICATIONS</div>
+        <div class="app-list" id="app-list"><span class="dim">—</span></div>
+      </div>
+
+      <div class="sys-block">
+        <div class="panel-title small">QUICK LAUNCH</div>
+        <div class="launch-grid" id="launch-grid">
+          <button class="launch-btn" data-app="chrome" title="Open Chrome"><span class="launch-ico">&#128274;</span><span>CHROME</span></button>
+          <button class="launch-btn" data-app="edge" title="Open Edge"><span class="launch-ico">&#9723;</span><span>EDGE</span></button>
+          <button class="launch-btn" data-app="vscode" title="Open VS Code"><span class="launch-ico">&#60; &#47;&#62;</span><span>VS CODE</span></button>
+          <button class="launch-btn" data-app="terminal" title="Open Windows Terminal"><span class="launch-ico">&#9609;</span><span>TERMINAL</span></button>
+          <button class="launch-btn" data-app="powershell" title="Open PowerShell"><span class="launch-ico">&#9654;_</span><span>POWERSHELL</span></button>
+          <button class="launch-btn" data-app="notepad" title="Open Notepad"><span class="launch-ico">&#9973;</span><span>NOTEPAD</span></button>
+          <button class="launch-btn" data-app="calculator" title="Open Calculator"><span class="launch-ico">&#10010;</span><span>CALC</span></button>
+          <button class="launch-btn" data-app="explorer" title="Open File Explorer"><span class="launch-ico">&#128193;</span><span>EXPLORER</span></button>
+          <button class="launch-btn" data-app="paint" title="Open Paint"><span class="launch-ico">&#127912;</span><span>PAINT</span></button>
+          <button class="launch-btn" data-app="blender" title="Open Blender"><span class="launch-ico">&#128165;</span><span>BLENDER</span></button>
+          <button class="launch-btn" data-app="spotify" title="Open Spotify"><span class="launch-ico">&#9835;</span><span>SPOTIFY</span></button>
+          <button class="launch-btn" data-app="word" title="Open Word"><span class="launch-ico">W</span><span>WORD</span></button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== BOTTOM DOCK ===== -->
+  <footer class="dock">
+    <div class="dock-side dock-left">
+      <button class="ctl-btn" id="btn-settings" title="Diagnostics">
+        <span class="ctl-ico">&#9881;</span><span>SETTINGS</span>
+      </button>
+      <button class="ctl-btn" id="btn-reset" title="Clear conversation context">
+        <span class="ctl-ico">&#8635;</span><span>RESET</span>
+      </button>
+    </div>
+
+    <div class="dock-center">
+      <canvas id="mic-canvas"></canvas>
+      <button class="mic-btn" id="btn-mic" title="Hold to speak">
+        <span class="mic-dot" id="mic-dot"></span>
+        <span class="mic-label" id="mic-label">HOLD TO SPEAK</span>
+      </button>
+      <div class="mic-hint">Space = speak &middot; Esc = stop</div>
+    </div>
+
+    <div class="dock-side dock-right">
+      <div class="mode-drop" id="mode-drop">
+        <button class="ctl-btn" id="btn-serious" title="Switch mode">
+          <span class="ctl-ico">&#9889;</span><span id="serious-label">NORMAL</span>
+          <span class="mode-caret">&#9662;</span>
+        </button>
+        <div class="mode-menu glass" id="mode-menu">
+          <div class="mode-menu-title">MODE SELECT</div>
+          <button class="mode-opt" id="mode-opt-normal">NORMAL MODE</button>
+          <button class="mode-opt" id="mode-opt-serious">SERIOUS MODE</button>
+        </div>
+      </div>
+      <button class="ctl-btn" id="btn-stop" title="Stop everything">
+        <span class="ctl-ico">&#9632;</span><span>STOP</span>
+      </button>
+      <button class="ctl-btn" id="btn-voice" title="Toggle voice mode">
+        <span class="ctl-ico">&#127908;</span><span id="voice-label">VOICE</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- command line -->
+  <div class="cmdline glass" id="cmdline">
+    <span class="cmd-prompt">&#8250;_</span>
+    <input type="text" id="text-input" placeholder="Type a command or question..." autocomplete="off">
+  </div>
+
+  <!-- ===== DIAGNOSTICS PANEL ===== -->
+  <aside class="diag-panel glass" id="diag-panel">
+    <div class="diag-head">DIAGNOSTICS</div>
+    <div class="diag-row"><span>MODEL</span><b id="diag-model">--</b></div>
+    <div class="diag-row"><span>VOICE MODE</span><b id="diag-voice">--</b></div>
+    <div class="diag-row"><span>MEMORY</span><b id="diag-memory">--</b></div>
+    <div class="diag-row"><span>TASKS</span><b id="diag-tasks">--</b></div>
+    <div class="diag-row"><span>RESEARCH</span><b id="diag-research">--</b></div>
+    <div class="diag-row"><span>CONNECTION</span><b id="diag-connection">--</b></div>
+  </aside>
+
+  <!-- audio sink -->
+  <div id="audio-output"></div>
+
+  <!-- ===== CONFIRM MODAL ===== -->
+  <div class="modal" id="confirm-modal">
+    <div class="modal-box glass">
+      <div class="modal-title">AUTHORISATION REQUIRED</div>
+      <div class="modal-body" id="confirm-message">Do you wish to proceed?</div>
+      <div class="modal-actions">
+        <button class="btn" id="btn-confirm-yes">AUTHORISE</button>
+        <button class="btn btn-danger" id="btn-confirm-no">DENY</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+<script src="/assets/hud.js"></script>
+</body>
+</html>

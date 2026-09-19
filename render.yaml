@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: jarvis-ai-assistant
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: LLM_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: LLM_MODEL
+        value: openai/gpt-oss-20b
+      - key: LLM_TEMPERATURE
+        value: "0.5"
+      - key: LLM_MAX_TOKENS
+        value: "1024"
+      - key: AUTH_PIN
+        sync: false
+      - key: HOST
+        value: 0.0.0.0
+      - key: VOICE_ENABLED
+        value: "false"
+      - key: WAKE_ENABLED
+        value: "false"
+      - key: LOCATION_NAME
+        value: Guam
+      - key: LOCATION_LATITUDE
+        value: "13.4443"
+      - key: LOCATION_LONGITUDE
+        value: "144.7937"
+      - key: FISH_AUDIO_API_KEY
+        sync: false
+      - key: FISH_AUDIO_REFERENCE_ID
+        value: 049975dde0a14889ad219f24a95e3a4f
+      - key: FISH_AUDIO_MODEL
+        value: s2.1-pro-free
+      - key: STT_MODEL
+        value: whisper-large-v3-turbo
