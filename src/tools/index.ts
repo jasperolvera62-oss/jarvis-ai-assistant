@@ -8,6 +8,7 @@ import { mediaTools } from "./categories/media.js";
 import { developerTools } from "./categories/developer.js";
 import { visionTools } from "./categories/vision.js";
 import { webTools } from "./categories/web.js";
+import { emergencyTools } from "./categories/emergency.js";
 import { createMemoryTools } from "./categories/memory.js";
 import { createResearchTools } from "./categories/research.js";
 
@@ -21,6 +22,7 @@ export function createAllTools(memory: MemoryStore): ToolDefinition[] {
     ...developerTools,
     ...visionTools,
     ...webTools,
+    ...emergencyTools,
     ...createMemoryTools(memory),
     ...createResearchTools(memory),
   ];

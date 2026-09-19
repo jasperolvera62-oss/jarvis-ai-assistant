@@ -187,6 +187,9 @@
         break;
       case "tool_call":
         els.currentTask.innerHTML = `<div>RUNNING PROTOCOL</div><div class="sub">&#9656; ${escapeHtml(msg.data.call.name)}</div>`;
+        if (msg.data.call.name === "trigger_emergency") {
+          openDistress();
+        }
         break;
       case "tool_result": {
         const r = msg.data.result;

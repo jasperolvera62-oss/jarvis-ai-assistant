@@ -645,6 +645,12 @@ body.state-transcribing .thinking-viz {
   animation: emerg-pulse 1s ease-in-out infinite;
 }
 .distress-call:hover { background: linear-gradient(180deg, #ee4545, #c01d1d); }
+.distress-textnow {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #ffb3a5;
+  margin: -12px 0 20px;
+}
 .distress-section {
   font-size: 10px;
   letter-spacing: 3px;
