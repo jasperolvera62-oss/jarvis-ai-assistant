@@ -23,10 +23,21 @@
       <span class="tb-sys">MARK VII SYSTEM</span>
       <span class="tb-badge online" id="top-status">ONLINE</span>
     </div>
+    <div class="tb-center">
+      <canvas id="mic-canvas"></canvas>
+      <button class="mic-btn" id="btn-mic" title="Hold to speak">
+        <span class="mic-dot" id="mic-dot"></span>
+        <span class="mic-label" id="mic-label">HOLD TO SPEAK</span>
+      </button>
+      <div class="mic-hint">Space = speak &middot; Esc = stop</div>
+    </div>
     <div class="tb-right">
       <span class="tb-metric"><i>CPU</i><b id="top-cpu">--%</b></span>
       <span class="tb-metric"><i>MEM</i><b id="top-mem">--%</b></span>
       <span class="tb-sep">|</span>
+      <button class="ctl-btn ctl-btn-sm" id="btn-voice" title="Toggle voice mode">
+        <span class="ctl-ico">&#127908;</span><span id="voice-label">VOICE</span>
+      </button>
       <span class="tb-clock" id="clock">--:--</span>
     </div>
   </header>
@@ -156,15 +167,6 @@
       </button>
     </div>
 
-    <div class="dock-center">
-      <canvas id="mic-canvas"></canvas>
-      <button class="mic-btn" id="btn-mic" title="Hold to speak">
-        <span class="mic-dot" id="mic-dot"></span>
-        <span class="mic-label" id="mic-label">HOLD TO SPEAK</span>
-      </button>
-      <div class="mic-hint">Space = speak &middot; Esc = stop</div>
-    </div>
-
     <div class="dock-side dock-right">
       <div class="mode-drop" id="mode-drop">
         <button class="ctl-btn" id="btn-serious" title="Switch mode">
@@ -179,9 +181,6 @@
       </div>
       <button class="ctl-btn" id="btn-stop" title="Stop everything">
         <span class="ctl-ico">&#9632;</span><span>STOP</span>
-      </button>
-      <button class="ctl-btn" id="btn-voice" title="Toggle voice mode">
-        <span class="ctl-ico">&#127908;</span><span id="voice-label">VOICE</span>
       </button>
     </div>
   </footer>

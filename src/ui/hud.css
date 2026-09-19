@@ -100,6 +100,13 @@ body {
 }
 
 .tb-left, .tb-right { display: flex; align-items: center; gap: 14px; }
+.tb-center {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 1 auto;
+}
 
 .tb-brand {
   font-family: var(--font-display);
@@ -634,6 +641,16 @@ body.mode-serious .mode-opt:hover { color: var(--red); border-color: rgba(255, 9
 }
 .mic-btn:hover { border-color: var(--cyan); box-shadow: 0 0 18px var(--cyan-glow); }
 
+/* mic button inside the top bar */
+.tb-center .mic-btn {
+  min-width: 190px;
+  padding: 7px 22px;
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+.tb-center .mic-hint { font-size: 9px; color: var(--text-faint); letter-spacing: 1px; white-space: nowrap; }
+.ctl-btn-sm { padding: 6px 10px; }
+
 .mic-dot {
   width: 10px; height: 10px;
   border-radius: 50%;
@@ -657,7 +674,7 @@ body.mode-serious .mode-opt:hover { color: var(--red); border-color: rgba(255, 9
 
 #mic-canvas {
   position: absolute;
-  bottom: 8px;
+  bottom: -4px;
   left: 50%;
   transform: translateX(-50%);
   width: 320px;
@@ -665,6 +682,7 @@ body.mode-serious .mode-opt:hover { color: var(--red); border-color: rgba(255, 9
   pointer-events: none;
   opacity: 0;              /* visible while listening/speaking */
   transition: opacity 0.3s;
+  z-index: 1;
 }
 body.state-listening #mic-canvas,
 body.state-speaking #mic-canvas { opacity: 1; }
