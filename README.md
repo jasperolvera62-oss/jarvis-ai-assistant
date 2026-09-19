@@ -4,6 +4,13 @@ An original, agentic personal-computer AI assistant. It understands, plans, acts
 observes, verifies, remembers, and reports — all through a single conversation
 pipeline that accepts both voice and text input.
 
+## Live site (password-protected)
+
+**https://jarvis-ai-assistant.onrender.com** — the deployed HUD is protected by a
+PIN (`AUTH_PIN`, set in the Render environment). Enter the PIN at the login page
+to access it. The free tier spins down after ~15 minutes of inactivity; the first
+load after idle takes roughly 30–60 seconds to wake up.
+
 ## Requirements
 
 - Node.js 20+ (Node 24 LTS recommended)
