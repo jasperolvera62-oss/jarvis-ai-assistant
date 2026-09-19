@@ -56,6 +56,12 @@
     btnConfirmNo: $("btn-confirm-no"),
     toastContainer: $("toast-container"),
     audioOutput: $("audio-output"),
+    btnEmergency: $("btn-emergency"),
+    distress: $("distress"),
+    distressTel: $("distress-tel"),
+    distressLoc: $("distress-loc"),
+    distressCopy: $("distress-copy"),
+    distressStanddown: $("distress-standdown"),
   };
 
   const STATE_CORE = {
@@ -147,6 +153,16 @@
         if (msg.data.systemInfo?.platform && msg.data.systemInfo.platform !== "win32") {
           if (els.launchPanel) {
             els.launchPanel.style.display = "none";
+          }
+        }
+        // Emergency location: prefer precise config coords, fall back to browser geolocation.
+        const loc = msg.data.config?.location;
+        if (els.distressLoc) {
+          if (loc && loc.latitude && loc.longitude) {
+            setDistressLocation(`${loc.name || "HOME"} · ${loc.latitude.toFixed(4)}, ${loc.longitude.toFixed(4)}`);
+          } else {
+            setDistressLocation(`${loc?.name || "UNKNOWN"} · locating...`);
+            requestBrowserLocation();
           }
         }
         break;
@@ -713,6 +729,28 @@
     showToast("VOICE", voiceEnabled ? "Audio output enabled." : "Audio output muted.", "useful");
   });
 
+  els.btnEmergency.addEventListener("click", () => {
+    openDistress();
+  });
+
+  els.distressCopy.addEventListener("click", async () => {
+    const text = els.distressLoc.textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast("EMERGENCY", "Location copied. Call 911 for real — this UI only assists.", "useful");
+    } catch {
+      showToast("EMERGENCY", "Could not copy on this device. Read the location aloud.", "warn");
+    }
+  });
+
+  els.distressStanddown.addEventListener("click", () => {
+    els.distress.classList.remove("active");
+  });
+
+  els.distressTel.addEventListener("click", (e) => {
+    showToast("EMERGENCY", "Dialing 911 now. Stay on the line.", "warn");
+  });
+
   els.btnSerious.addEventListener("click", (e) => {
     e.stopPropagation();
     toggleModeMenu();
@@ -747,6 +785,33 @@
       toast.style.opacity = "0";
       setTimeout(() => toast.remove(), 500);
     }, 5500);
+  }
+
+  // ---- Emergency / distress ----
+  function setDistressLocation(text) {
+    if (els.distressLoc) els.distressLoc.textContent = text;
+  }
+
+  function requestBrowserLocation() {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setDistressLocation(`CURRENT POSITION · ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
+      },
+      () => {
+        setDistressLocation("location unavailable — describe your surroundings to the dispatcher.");
+      },
+      { timeout: 8000, maximumAge: 60000 }
+    );
+  }
+
+  function openDistress() {
+    if (els.distress) els.distress.classList.add("active");
+    if (els.distressLoc && els.distressLoc.textContent === "--") {
+      setDistressLocation("UNKNOWN · locating...");
+      requestBrowserLocation();
+    }
+    showToast("EMERGENCY", "This panel assists a real 911 call. It cannot place one by itself.", "warn");
   }
 
   // ---- Clock ----

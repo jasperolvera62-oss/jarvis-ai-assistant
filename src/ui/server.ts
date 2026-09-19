@@ -189,6 +189,7 @@ export class JARVISServer {
           llm: { model: getConfig().llm.model },
           voice: { enabled: getConfig().voice.enabled, wakeEnabled: getConfig().voice.wakeEnabled, wakeWord: getConfig().voice.wakeWord },
           personality: { name: getConfig().personality.name },
+          location: getConfig().location,
         },
         systemInfo: {
           platform: process.platform,

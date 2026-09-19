@@ -165,6 +165,9 @@
       <button class="ctl-btn" id="btn-reset" title="Clear conversation context">
         <span class="ctl-ico">&#8635;</span><span>RESET</span>
       </button>
+      <button class="ctl-btn ctl-emergency" id="btn-emergency" title="Emergency / distress signal">
+        <span class="ctl-ico">&#9888;</span><span>EMERGENCY</span>
+      </button>
     </div>
 
     <div class="dock-side dock-right">
@@ -214,6 +217,24 @@
         <button class="btn" id="btn-confirm-yes">AUTHORISE</button>
         <button class="btn btn-danger" id="btn-confirm-no">DENY</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ===== EMERGENCY / DISTRESS OVERLAY ===== -->
+  <div class="distress" id="distress">
+    <div class="distress-inner">
+      <div class="distress-head">&#9888; EMERGENCY PROTOCOL &#9888;</div>
+      <div class="distress-num">911</div>
+      <div class="distress-line">DIAL EMERGENCY SERVICES IMMEDIATELY</div>
+      <a class="distress-call" href="tel:911" id="distress-tel">&#9990; CALL 911 NOW</a>
+      <div class="distress-section">YOUR LOCATION (READ TO DISPATCHER)</div>
+      <div class="distress-loc" id="distress-loc">--</div>
+      <button class="distress-copy" id="distress-copy">COPY LOCATION</button>
+      <div class="distress-guide">
+        Stay calm. State your name, your location, and the nature of the emergency.
+        Stay on the line and follow the dispatcher&rsquo;s instructions.
+      </div>
+      <button class="distress-standdown" id="distress-standdown">STAND DOWN</button>
     </div>
   </div>
 
