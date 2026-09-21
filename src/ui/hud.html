@@ -197,7 +197,22 @@
       </button>
     </div>
 
+    <div class="dock-side dock-center">
+      <button class="ctl-btn ctl-text" id="btn-text" title="Type a command">
+        <span class="ctl-ico">&#8451;</span><span>TYPE</span>
+      </button>
+    </div>
+
     <div class="dock-side dock-right">
+      <div class="quickdock" id="quickdock">
+        <button class="launch-btn" data-app="chrome" title="Open Chrome"><span class="launch-ico">&#127760;</span></button>
+        <button class="launch-btn" data-app="spotify" title="Open Spotify"><span class="launch-ico">&#9835;</span></button>
+        <button class="launch-btn" data-app="explorer" title="File Explorer"><span class="launch-ico">&#128193;</span></button>
+        <button class="launch-btn" data-app="vscode" title="VS Code"><span class="launch-ico">&#60;&#47;&#62;</span></button>
+        <button class="launch-btn" data-app="terminal" title="Terminal"><span class="launch-ico">&#9609;</span></button>
+        <button class="launch-btn" data-app="notepad" title="Notepad"><span class="launch-ico">&#9973;</span></button>
+      </div>
+      <span class="quickdock-label">APPS</span>
       <div class="mode-drop" id="mode-drop">
         <button class="ctl-btn" id="btn-serious" title="Switch mode">
           <span class="ctl-ico">&#9889;</span><span id="serious-label">NORMAL</span>

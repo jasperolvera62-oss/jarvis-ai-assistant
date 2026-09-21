@@ -36,6 +36,8 @@
     btnVoice: $("btn-voice"),
     btnSerious: $("btn-serious"),
     seriousLabel: $("serious-label"),
+    btnText: $("btn-text"),
+    quickdock: $("quickdock"),
     modeDrop: $("mode-drop"),
     modeMenu: $("mode-menu"),
     modeOptNormal: $("mode-opt-normal"),
@@ -167,6 +169,9 @@
           }
           if (quickAccess) {
             quickAccess.style.display = "none";
+          }
+          if (els.quickdock) {
+            els.quickdock.style.display = "none";
           }
         }
         // Emergency location: prefer precise config coords, fall back to browser geolocation.
@@ -1039,6 +1044,27 @@
     send({ type: "launch_app", data: { name: app } });
     showToast("LAUNCH", `${app.toUpperCase()} starting...`, "useful");
   });
+
+  // QUICK DOCK (bottom-right app launcher) — same behavior as the launch grid
+  if (els.quickdock) {
+    els.quickdock.addEventListener("click", (e) => {
+      const btn = e.target.closest(".launch-btn");
+      if (!btn) return;
+      const app = btn.dataset.app;
+      if (!app) return;
+      send({ type: "launch_app", data: { name: app } });
+      showToast("LAUNCH", `${app.toUpperCase()} starting...`, "useful");
+    });
+  }
+
+  // TYPE button — opens the command line
+  if (els.btnText) {
+    els.btnText.addEventListener("click", () => {
+      if (isModalOpen()) return;
+      if (els.cmdline.classList.contains("visible")) hideCmdline();
+      else showCmdline();
+    });
+  }
 
   els.btnVoice.addEventListener("click", () => {
     voiceEnabled = !voiceEnabled;

@@ -597,6 +597,34 @@ body.state-verifying .thinking-viz { display: flex; }
   background: linear-gradient(90deg, transparent, var(--line-bright) 18%, transparent 82%);
 }
 .dock-side { display: flex; align-items: center; gap: 10px; }
+.dock-left { flex: 0 0 auto; }
+.dock-right { flex: 1 0 auto; justify-content: flex-end; }
+.dock-center { flex: 0 0 auto; }
+.dock-center { position: absolute; left: 50%; transform: translateX(-50%); }
+
+.ctl-text { color: var(--green); border-color: rgba(47, 217, 160, 0.45); }
+.ctl-text:hover { color: var(--green); border-color: rgba(47, 217, 160, 0.7); box-shadow: 0 0 14px rgba(47, 217, 160, 0.3); }
+
+/* quick app dock (bottom-right) */
+.quickdock {
+  display: flex; align-items: center; gap: 7px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  background: linear-gradient(180deg, rgba(20, 36, 62, 0.6), rgba(10, 18, 34, 0.8));
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+.quickdock .launch-btn {
+  padding: 5px 6px;
+  flex-direction: column; gap: 0;
+  min-width: 38px;
+}
+.quickdock .launch-btn .launch-ico { font-size: 15px; }
+.quickdock .launch-btn:hover { transform: translateY(-2px); }
+.quickdock-label {
+  font-size: 8px; letter-spacing: 0.22em; color: var(--text-faint);
+  writing-mode: vertical-rl;
+}
 
 .ctl-btn {
   display: flex; align-items: center; gap: 8px;
