@@ -8,6 +8,7 @@
     topCpu: $("top-cpu"),
     topMem: $("top-mem"),
     clock: $("clock"),
+    clockDate: $("clock-date"),
     conversation: $("conversation"),
     convoEmpty: $("convo-empty"),
     coreCanvas: $("core-canvas"),
@@ -19,9 +20,12 @@
     pctMem: $("pct-mem"),
     barGpu: $("bar-gpu"),
     pctGpu: $("pct-gpu"),
+    barTemp: $("bar-temp"),
+    pctTemp: $("pct-temp"),
     netDot: $("net-dot"),
     netVal: $("net-val"),
     storageVal: $("storage-val"),
+    barStorage: $("bar-storage"),
     currentTask: $("current-task"),
     appList: $("app-list"),
     launchPanel: $("launch-panel"),
@@ -41,8 +45,15 @@
     btnMic: $("btn-mic"),
     micDot: $("mic-dot"),
     micLabel: $("mic-label"),
+    btnAssist: $("btn-assist"),
+    btnCommand: $("btn-command"),
     cmdline: $("cmdline"),
     input: $("text-input"),
+    wxTemp: $("wx-temp"),
+    wxCond: $("wx-cond"),
+    wxHi: $("wx-hi"),
+    wxLo: $("wx-lo"),
+    wxLoc: $("wx-loc"),
     diagPanel: $("diag-panel"),
     diagModel: $("diag-model"),
     diagVoice: $("diag-voice"),
@@ -154,6 +165,9 @@
           if (els.launchPanel) {
             els.launchPanel.style.display = "none";
           }
+          if (quickAccess) {
+            quickAccess.style.display = "none";
+          }
         }
         // Emergency location: prefer precise config coords, fall back to browser geolocation.
         const loc = msg.data.config?.location;
@@ -164,6 +178,9 @@
             setDistressLocation(`${loc?.name || "UNKNOWN"} · locating...`);
             requestBrowserLocation();
           }
+        }
+        if (loc && loc.latitude && loc.longitude) {
+          fetchWeather(loc.name || "CURRENT LOCATION", loc.latitude, loc.longitude);
         }
         break;
       case "mode_change":
@@ -253,10 +270,32 @@
     els.pctGpu.textContent = gpu === null ? "--%" : `${gpu}%`;
     els.barGpu.style.width = `${gpu === null ? 0 : gpu}%`;
 
+    // Temperature: server reports when available, otherwise aC estimate from load.
+    if (s.temp != null) {
+      const t = Math.round(Number(s.temp));
+      els.pctTemp.textContent = `${t}\u00b0C`;
+      els.pctTemp.style.color = t >= 70 ? "var(--red)" : "var(--cyan-bright)";
+      const fill = Math.max(0, Math.min(100, (t - 20) * 2));
+      els.barTemp.style.width = `${fill}%`;
+    } else {
+      const est = 32 + Math.round((cpu || 0) * 0.35 + (gpu || 0) * 0.2);
+      els.pctTemp.textContent = `${est}\u00b0C`;
+      els.pctTemp.style.color = est >= 70 ? "var(--red)" : "var(--cyan-bright)";
+      els.barTemp.style.width = `${Math.max(0, Math.min(100, (est - 24) * 2))}%`;
+    }
+
     els.netVal.textContent = s.network || "--";
     els.netDot.classList.toggle("off", s.network !== "CONNECTED");
 
-    if (s.storage) els.storageVal.textContent = `${s.storage.free} FREE / ${s.storage.total}`;
+    if (s.storage) {
+      els.storageVal.textContent = `${s.storage.free} FREE / ${s.storage.total}`;
+      const totalGb = parseFloat(s.storage.total);
+      const freeGb = parseFloat(s.storage.free);
+      if (totalGb > 0 && freeGb >= 0) {
+        const used = Math.max(0, Math.min(100, 100 - (freeGb / totalGb) * 100));
+        els.barStorage.style.width = `${used}%`;
+      }
+    }
 
     if (Array.isArray(s.activeApps) && s.activeApps.length) {
       els.appList.innerHTML = s.activeApps
@@ -658,6 +697,42 @@
     return s / n;
   }
 
+  // ---- Weather (Open-Meteo, no key) ----
+  async function fetchWeather(name, lat, lon) {
+    try {
+      const res = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+          `&current=temperature_2m,weather_code,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit`
+      );
+      const j = await res.json();
+      const cur = j.current || {};
+      const daily = j.daily || {};
+      const code = cur.weather_code;
+      if (els.wxTemp) {
+        els.wxTemp.textContent = `${Math.round(cur.temperature_2m ?? 0)}\u00b0F`;
+        els.wxCond.textContent = WEATHER_CODES[code] || "CLEAR";
+      }
+      const hi = daily.temperature_2m_max && daily.temperature_2m_max[0];
+      const lo = daily.temperature_2m_min && daily.temperature_2m_min[0];
+      if (els.wxHi) els.wxHi.textContent = `H: ${hi != null ? Math.round(hi) : "--"}\u00b0`;
+      if (els.wxLo) els.wxLo.textContent = `L: ${lo != null ? Math.round(lo) : "--"}\u00b0`;
+      if (els.wxLoc) els.wxLoc.textContent = name;
+    } catch {
+      if (els.wxCond) els.wxCond.textContent = "OFFLINE";
+    }
+  }
+  const WEATHER_CODES = {
+    0: "CLEAR", 1: "MOSTLY CLEAR", 2: "PARTLY CLOUDY", 3: "OVERCAST",
+    45: "FOG", 48: "FOG",
+    51: "DRIZZLE", 53: "DRIZZLE", 55: "DRIZZLE",
+    61: "RAIN", 63: "RAIN", 65: "RAIN",
+    66: "FREEZING RAIN", 67: "FREEZING RAIN",
+    71: "SNOW", 73: "SNOW", 75: "SNOW", 77: "SNOW GRAINS",
+    80: "SHOWERS", 81: "SHOWERS", 82: "SHOWERS",
+    85: "SNOW SHOWERS", 86: "SNOW SHOWERS",
+    95: "THUNDERSTORM", 96: "THUNDERSTORM", 99: "THUNDERSTORM",
+  };
+
   // ---- Confirmation modal ----
   function showConfirmation(request) {
     pendingConfirmation = request;
@@ -704,6 +779,49 @@
     send({ type: "get_memory" });
     send({ type: "get_tasks" });
   });
+
+  // QUICK ACCESS list (left panel) — actually an app launcher
+  const quickAccess = document.getElementById("quick-access");
+  if (quickAccess) {
+    quickAccess.addEventListener("click", (e) => {
+      const item = e.target.closest("[data-app], #qa-settings");
+      if (!item) return;
+      if (item.id === "qa-settings") {
+        els.diagPanel.classList.toggle("visible");
+        send({ type: "get_memory" });
+        send({ type: "get_tasks" });
+        return;
+      }
+      const app = item.dataset.app;
+      if (!app) return;
+      send({ type: "launch_app", data: { name: app } });
+      showToast("LAUNCH", `${app.toUpperCase()} opening...`, "useful");
+    });
+  }
+
+  // ASSIST crystal — open the command line
+  if (els.btnAssist) {
+    els.btnAssist.addEventListener("click", () => {
+      if (isModalOpen()) return;
+      if (els.cmdline.classList.contains("visible")) hideCmdline();
+      else showCmdline();
+    });
+  }
+
+  // COMMAND crystal — hold to talk
+  if (els.btnCommand) {
+    els.btnCommand.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      if (isRecording) return;
+      void startRecording();
+    });
+    els.btnCommand.addEventListener("pointerup", () => {
+      if (isRecording) stopRecording();
+    });
+    els.btnCommand.addEventListener("pointerleave", () => {
+      if (isRecording) stopRecording();
+    });
+  }
 
   els.btnReset.addEventListener("click", () => {
     send({ type: "clear_context" });
@@ -821,6 +939,11 @@
   function updateClock() {
     const now = new Date();
     els.clock.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    if (els.clockDate) {
+      els.clockDate.textContent = now
+        .toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })
+        .toUpperCase();
+    }
   }
 
   // ---- Events ----
