@@ -669,44 +669,103 @@
       return [cx + x1 * sphereR * fov, cy + y1 * sphereR * fov, z2];
     };
 
+    // ---- sphere point helper (reuses proj, returns [px, py, z2]) ----
+    const spherePoint = (ux, uy, uz) => proj(ux * sphereR, uy * sphereR, uz * sphereR);
+
+    // ---- orbital rings: build point clouds + depth info ----
+    const ringDefs = [
+      { tiltX: 0.7, tiltY: 0, r: 1.42, spin: 0.7, pulse: 0.4 },
+      { tiltX: -0.4, tiltY: 0.6, r: 1.55, spin: -0.5, pulse: 0.3 },
+      { tiltX: 0.1, tiltY: -0.75, r: 1.34, spin: 1.1, pulse: 0.32 },
+      { tiltX: -0.9, tiltY: -0.25, r: 1.68, spin: -0.34, pulse: 0.24 },
+    ];
+    const ringPoint = (ring, a) => {
+      const x = Math.cos(a), y = Math.sin(a);
+      const c1 = Math.cos(ring.tiltX), s1 = Math.sin(ring.tiltX);
+      const y1 = y * c1;
+      const z1 = y * s1;
+      const c2 = Math.cos(ring.tiltY), s2 = Math.sin(ring.tiltY);
+      const x2 = x * c2 + z1 * s2;
+      const z2 = -x * s2 + z1 * c2;
+      return [x2 * sphereR * ring.r, y1 * sphereR * ring.r, z2 * sphereR * ring.r];
+    };
+    const RING_SEG = 72;
+    const ringPts = ringDefs.map((ring) => {
+      const pts = [];
+      for (let i = 0; i <= RING_SEG; i++) {
+        const pt = ringPoint(ring, (i / RING_SEG) * Math.PI * 2 + rot * ring.spin);
+        pts.push(proj(pt[0], pt[1], pt[2]));
+      }
+      return pts;
+    });
+
+    // stroke segments of a ring passing the depth filter
+    const strokeRingHalf = (ringPtSet, direction) => {
+      ctx.beginPath();
+      let gap = true;
+      for (let i = 0; i < ringPtSet.length; i++) {
+        const [px, py, z2] = ringPtSet[i];
+        const keep = direction < 0 ? z2 < 0 : z2 >= 0;
+        if (keep) {
+          if (gap) { ctx.moveTo(px, py); gap = false; }
+          else ctx.lineTo(px, py);
+        } else {
+          gap = true;
+        }
+      }
+      ctx.stroke();
+    };
+
+    ctx.lineWidth = 1;
+    // 1) back halves of the rings — BEHIND the sphere (dim)
+    for (const pts of ringPts) {
+      ctx.strokeStyle = `rgba(${palette.bright},0.1)`;
+      strokeRingHalf(pts, -1);
+    }
+
+    // 2) sphere body — solid core so the back rings disappear behind it
+    const body = ctx.createRadialGradient(cx, cy, sphereR * 0.18, cx, cy, sphereR * 1.06);
+    body.addColorStop(0, `rgba(10,18,34,${0.94 + energy * 0.04})`);
+    body.addColorStop(0.75, "rgba(12,21,40,0.9)");
+    body.addColorStop(1, "rgba(16,28,52,0.12)");
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.arc(cx, cy, sphereR * 1.06, 0, Math.PI * 2);
+    ctx.fill();
+
     // longitude lines (meridians)
     const LON = 14, LAT = 7;
     ctx.lineWidth = 0.9;
+    ctx.strokeStyle = `rgba(${palette.arc},0.3)`;
+    ctx.beginPath();
     for (let m = 0; m < LON; m++) {
       const lon = (m / LON) * Math.PI * 2;
-      ctx.strokeStyle = `rgba(${palette.arc},${m % 2 === 0 ? 0.3 : 0.16})`;
-      ctx.beginPath();
       let last = null;
       for (let i = 0; i <= 40; i++) {
         const lat = (i / 40) * Math.PI - Math.PI / 2;
-        const x = Math.cos(lat) * Math.cos(lon);
-        const y = Math.sin(lat);
-        const z = Math.cos(lat) * Math.sin(lon);
-        const [px, py] = proj(x, y, z);
+        const [px, py] = spherePoint(Math.cos(lat) * Math.cos(lon), Math.sin(lat), Math.cos(lat) * Math.sin(lon));
         if (last) ctx.lineTo(px, py);
         else ctx.moveTo(px, py);
         last = true;
       }
-      ctx.stroke();
     }
+    ctx.stroke();
     // latitude lines (parallels)
+    ctx.strokeStyle = `rgba(${palette.arc},0.22)`;
+    ctx.beginPath();
     for (let l = 1; l < LAT; l++) {
       const lat = (l / LAT) * Math.PI - Math.PI / 2;
-      ctx.strokeStyle = `rgba(${palette.arc},${l % 2 === 0 ? 0.28 : 0.14})`;
-      ctx.beginPath();
       let last = null;
       for (let i = 0; i <= 40; i++) {
         const lon = (i / 40) * Math.PI * 2;
-        const x = Math.cos(lat) * Math.cos(lon);
-        const y = Math.sin(lat);
-        const z = Math.cos(lat) * Math.sin(lon);
-        const [px, py] = proj(x, y, z);
+        const [px, py] = spherePoint(Math.cos(lat) * Math.cos(lon), Math.sin(lat), Math.cos(lat) * Math.sin(lon));
         if (last) ctx.lineTo(px, py);
         else ctx.moveTo(px, py);
         last = true;
       }
-      ctx.stroke();
     }
+    ctx.stroke();
+
     // core glow
     const glow = ctx.createRadialGradient(cx, cy, sphereR * 0.1, cx, cy, sphereR * 0.92);
     glow.addColorStop(0, `rgba(${palette.bright},${0.16 + energy * 0.18})`);
@@ -717,52 +776,23 @@
     ctx.arc(cx, cy, sphereR * 0.92, 0, Math.PI * 2);
     ctx.fill();
 
-    // ---- spinning orbital rings around the sphere ----
-    const ringDefs = [
-      { tiltX: 0.7, tiltY: 0, r: sphereR * 1.42, spin: 0.7, pulse: 0.35 },
-      { tiltX: -0.4, tiltY: 0.6, r: sphereR * 1.55, spin: -0.5, pulse: 0.28 },
-      { tiltX: 0.1, tiltY: -0.75, r: sphereR * 1.34, spin: 1.1, pulse: 0.3 },
-      { tiltX: -0.9, tiltY: -0.25, r: sphereR * 1.68, spin: -0.34, pulse: 0.22 },
-    ];
+    // 3) front halves of the rings — IN FRONT of the sphere (bright)
     ctx.lineWidth = 1;
-    for (const ring of ringDefs) {
-      const seg = 60;
-      ctx.strokeStyle = `rgba(${palette.bright},${ring.pulse * (0.5 + energy * 0.4)})`;
-      ctx.beginPath();
-      let last = null;
-      for (let i = 0; i <= seg; i++) {
-        const a = (i / seg) * Math.PI * 2 + rot * ring.spin;
-        // ring lies in a tilted plane: unit circle in XY, then rotate
-        let x = Math.cos(a), y = Math.sin(a), z = 0;
-        // rotate around X
-        const c1 = Math.cos(ring.tiltX), s1 = Math.sin(ring.tiltX);
-        const y1 = y * c1 - z * s1;
-        const z1 = y * s1 + z * c1;
-        // rotate around Y
-        const c2 = Math.cos(ring.tiltY), s2 = Math.sin(ring.tiltY);
-        const x2 = x * c2 + z1 * s2;
-        const z2 = -x * s2 + z1 * c2;
-        const [px, py] = proj(x2 * ring.r, y1 * ring.r, z2 * ring.r);
-        if (last) ctx.lineTo(px, py);
-        else ctx.moveTo(px, py);
-        last = true;
-      }
-      ctx.stroke();
+    ringDefs.forEach((ring, idx) => {
+      ctx.strokeStyle = `rgba(${palette.bright},${ring.pulse * (0.7 + energy * 0.4)})`;
+      strokeRingHalf(ringPts[idx], 1);
+    });
 
-      // travelling pulse dot on this ring
+    // travelling pulse dots — hidden while behind the sphere body
+    for (let k = 0; k < ringDefs.length; k++) {
+      const ring = ringDefs[k];
       const ta = rot * ring.spin * 1.7 + now / 900 * (ring.spin > 0 ? 1 : -1);
-      const dotX = Math.cos(ta), dotY = Math.sin(ta), dotZ = 0;
+      const [dx, dy, dz] = proj(...ringPoint(ring, ta));
+      if (dz < 0) continue; // behind the sphere — occluded
       ctx.save();
-      const c1 = Math.cos(ring.tiltX), s1 = Math.sin(ring.tiltX);
-      const y1 = dotY * c1 - dotZ * s1;
-      const z1 = dotY * s1 + dotZ * c1;
-      const c2 = Math.cos(ring.tiltY), s2 = Math.sin(ring.tiltY);
-      const x2 = dotX * c2 + z1 * s2;
-      const z2 = -dotX * s2 + z1 * c2;
-      const [dx, dy] = proj(x2 * ring.r, y1 * ring.r, z2 * ring.r);
       ctx.fillStyle = `rgba(${palette.bright},${0.8 + energy * 0.2})`;
       ctx.shadowColor = `rgba(${palette.bright},0.8)`;
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 12;
       ctx.beginPath();
       ctx.arc(dx, dy, 2.6, 0, Math.PI * 2);
       ctx.fill();
