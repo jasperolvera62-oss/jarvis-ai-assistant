@@ -602,22 +602,201 @@
     }
 
     const rot = now / 1000 * speed * 6;
+    const tilt = 0.46; // fixed axial tilt of the sphere
+    const sphereR = R * 0.62;
 
-    // spinning dashed arcs
+    // ---- holographic platform below the sphere ----
     ctx.save();
-    ctx.strokeStyle = `rgba(${palette.arc},0.22)`;
+    ctx.translate(cx, cy + sphereR * 1.35);
+    const platW = R * 1.05, platH = R * 0.3;
+    // glow pool
+    const pool = ctx.createRadialGradient(0, 0, 0, 0, 0, platW);
+    pool.addColorStop(0, `rgba(${palette.bright},${0.10 + energy * 0.12})`);
+    pool.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = pool;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, platW, platH, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // rim ring
+    ctx.strokeStyle = `rgba(${palette.arc},${0.35 + energy * 0.2})`;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, platW, platH, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    // inner rims
+    for (let k = 1; k <= 3; k++) {
+      ctx.strokeStyle = `rgba(${palette.arc},${0.14 + k * 0.04})`;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, platW * (k / 3), platH * (k / 3), 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    // radial ticks around the platform
+    ctx.strokeStyle = `rgba(${palette.bright},0.45)`;
     ctx.lineWidth = 1;
+    for (let i = 0; i < 24; i++) {
+      const a = (i / 24) * Math.PI * 2 + rot * 0.15;
+      const x = Math.cos(a) * platW, y = Math.sin(a) * platH;
+      ctx.beginPath();
+      ctx.moveTo(x * 0.94, y * 0.94);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+    // projection beam rising from the platform
+    const beam = ctx.createLinearGradient(0, platH * 0.6, 0, 0);
+    beam.addColorStop(0, `rgba(${palette.arc},${0.18 + energy * 0.1})`);
+    beam.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = beam;
     ctx.beginPath();
-    ctx.arc(cx, cy, R, rot, rot + Math.PI * 1.15);
-    ctx.stroke();
-    ctx.strokeStyle = `rgba(${palette.bright},0.18)`;
-    ctx.beginPath();
-    ctx.arc(cx, cy, R * 0.78, -rot * 0.8, -rot * 0.8 + Math.PI * 0.85);
-    ctx.stroke();
+    ctx.moveTo(-sphereR * 0.35, platH * 0.6);
+    ctx.lineTo(sphereR * 0.35, platH * 0.6);
+    ctx.lineTo(sphereR * 0.1, -sphereR * 1.1);
+    ctx.lineTo(-sphereR * 0.1, -sphereR * 1.1);
+    ctx.closePath();
+    ctx.fill();
     ctx.restore();
 
-    // equalizer ring (voice / tts driven)
-    const bins = 128;
+    // ---- wireframe sphere (3D) ----
+    // project a unit sphere point to the 2D plane with rotation + tilt
+    const proj = (x, y, z) => {
+      // rotate around Y (spin), then around X (tilt)
+      const c1 = Math.cos(rot), s1 = Math.sin(rot);
+      const x1 = x * c1 + z * s1;
+      const z1 = -x * s1 + z * c1;
+      const c2 = Math.cos(tilt + Math.sin(rot * 0.5) * 0.08), s2 = Math.sin(tilt + Math.sin(rot * 0.5) * 0.08);
+      const y1 = y * c2 - z1 * s2;
+      const z2 = y * s2 + z1 * c2;
+      const fov = 1.6 / (1.6 - z2 / (sphereR + 12)); // slight perspective
+      return [cx + x1 * sphereR * fov, cy + y1 * sphereR * fov, z2];
+    };
+
+    // longitude lines (meridians)
+    const LON = 14, LAT = 7;
+    ctx.lineWidth = 0.9;
+    for (let m = 0; m < LON; m++) {
+      const lon = (m / LON) * Math.PI * 2;
+      ctx.strokeStyle = `rgba(${palette.arc},${m % 2 === 0 ? 0.3 : 0.16})`;
+      ctx.beginPath();
+      let last = null;
+      for (let i = 0; i <= 40; i++) {
+        const lat = (i / 40) * Math.PI - Math.PI / 2;
+        const x = Math.cos(lat) * Math.cos(lon);
+        const y = Math.sin(lat);
+        const z = Math.cos(lat) * Math.sin(lon);
+        const [px, py] = proj(x, y, z);
+        if (last) ctx.lineTo(px, py);
+        else ctx.moveTo(px, py);
+        last = true;
+      }
+      ctx.stroke();
+    }
+    // latitude lines (parallels)
+    for (let l = 1; l < LAT; l++) {
+      const lat = (l / LAT) * Math.PI - Math.PI / 2;
+      ctx.strokeStyle = `rgba(${palette.arc},${l % 2 === 0 ? 0.28 : 0.14})`;
+      ctx.beginPath();
+      let last = null;
+      for (let i = 0; i <= 40; i++) {
+        const lon = (i / 40) * Math.PI * 2;
+        const x = Math.cos(lat) * Math.cos(lon);
+        const y = Math.sin(lat);
+        const z = Math.cos(lat) * Math.sin(lon);
+        const [px, py] = proj(x, y, z);
+        if (last) ctx.lineTo(px, py);
+        else ctx.moveTo(px, py);
+        last = true;
+      }
+      ctx.stroke();
+    }
+    // core glow
+    const glow = ctx.createRadialGradient(cx, cy, sphereR * 0.1, cx, cy, sphereR * 0.92);
+    glow.addColorStop(0, `rgba(${palette.bright},${0.16 + energy * 0.18})`);
+    glow.addColorStop(0.6, `rgba(${palette.arc},0.07)`);
+    glow.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(cx, cy, sphereR * 0.92, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ---- spinning orbital rings around the sphere ----
+    const ringDefs = [
+      { tiltX: 0.7, tiltY: 0, r: sphereR * 1.42, spin: 0.7, pulse: 0.35 },
+      { tiltX: -0.4, tiltY: 0.6, r: sphereR * 1.55, spin: -0.5, pulse: 0.28 },
+      { tiltX: 0.1, tiltY: -0.75, r: sphereR * 1.34, spin: 1.1, pulse: 0.3 },
+      { tiltX: -0.9, tiltY: -0.25, r: sphereR * 1.68, spin: -0.34, pulse: 0.22 },
+    ];
+    ctx.lineWidth = 1;
+    for (const ring of ringDefs) {
+      const seg = 60;
+      ctx.strokeStyle = `rgba(${palette.bright},${ring.pulse * (0.5 + energy * 0.4)})`;
+      ctx.beginPath();
+      let last = null;
+      for (let i = 0; i <= seg; i++) {
+        const a = (i / seg) * Math.PI * 2 + rot * ring.spin;
+        // ring lies in a tilted plane: unit circle in XY, then rotate
+        let x = Math.cos(a), y = Math.sin(a), z = 0;
+        // rotate around X
+        const c1 = Math.cos(ring.tiltX), s1 = Math.sin(ring.tiltX);
+        const y1 = y * c1 - z * s1;
+        const z1 = y * s1 + z * c1;
+        // rotate around Y
+        const c2 = Math.cos(ring.tiltY), s2 = Math.sin(ring.tiltY);
+        const x2 = x * c2 + z1 * s2;
+        const z2 = -x * s2 + z1 * c2;
+        const [px, py] = proj(x2 * ring.r, y1 * ring.r, z2 * ring.r);
+        if (last) ctx.lineTo(px, py);
+        else ctx.moveTo(px, py);
+        last = true;
+      }
+      ctx.stroke();
+
+      // travelling pulse dot on this ring
+      const ta = rot * ring.spin * 1.7 + now / 900 * (ring.spin > 0 ? 1 : -1);
+      const dotX = Math.cos(ta), dotY = Math.sin(ta), dotZ = 0;
+      ctx.save();
+      const c1 = Math.cos(ring.tiltX), s1 = Math.sin(ring.tiltX);
+      const y1 = dotY * c1 - dotZ * s1;
+      const z1 = dotY * s1 + dotZ * c1;
+      const c2 = Math.cos(ring.tiltY), s2 = Math.sin(ring.tiltY);
+      const x2 = dotX * c2 + z1 * s2;
+      const z2 = -dotX * s2 + z1 * c2;
+      const [dx, dy] = proj(x2 * ring.r, y1 * ring.r, z2 * ring.r);
+      ctx.fillStyle = `rgba(${palette.bright},${0.8 + energy * 0.2})`;
+      ctx.shadowColor = `rgba(${palette.bright},0.8)`;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(dx, dy, 2.6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // ---- outer targeting circle + dashed arcs ----
+    ctx.save();
+    ctx.strokeStyle = `rgba(${palette.arc},0.2)`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(cx, cy, sphereR * 1.95, rot, rot + Math.PI * 1.2);
+    ctx.stroke();
+    ctx.strokeStyle = `rgba(${palette.bright},0.15)`;
+    ctx.beginPath();
+    ctx.arc(cx, cy, sphereR * 1.85, -rot * 0.8, -rot * 0.8 + Math.PI * 0.9);
+    ctx.stroke();
+    // tick marks on the outer ring
+    ctx.strokeStyle = `rgba(${palette.arc},0.35)`;
+    for (let i = 0; i < 48; i++) {
+      const a = (i / 48) * Math.PI * 2 + rot * 0.1;
+      const r0 = sphereR * 1.9;
+      const len = i % 6 === 0 ? 6 : 3;
+      const x0 = Math.cos(a) * r0, y0 = Math.sin(a) * r0;
+      const x1 = Math.cos(a) * (r0 + len), y1 = Math.sin(a) * (r0 + len);
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x1, y1);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // lightning arcs around the sphere (voice / tts driven)
+    const bins = 64;
     ctx.save();
     ctx.translate(cx, cy);
     ctx.lineWidth = 1.2;
@@ -629,37 +808,25 @@
         const v = avg(activeBins.slice(Math.max(2, i), i + 14));
         lvl = 0.25 + (v / 255) * amp;
       }
-      const x = Math.cos(ang), y = Math.sin(ang);
-      const rIn = R * (0.96 + 0.05 * Math.sin(now / 300 + i * 0.3));
-      const rOut = rIn + 26 * lvl * (0.5 + 0.5 * Math.sin(ang * 3 + now / 500));
-      ctx.strokeStyle = `rgba(${palette.bright},${0.15 + 0.35 * lvl})`;
+      const rIn = sphereR * (1.04 + 0.05 * Math.sin(now / 300 + i * 0.3));
+      const rOut = rIn + 18 * lvl * (0.5 + 0.5 * Math.sin(ang * 3 + now / 500));
+      ctx.strokeStyle = `rgba(${palette.bright},${0.12 + 0.35 * lvl})`;
       ctx.beginPath();
-      ctx.moveTo(x * rIn, y * rIn);
-      ctx.lineTo(x * rOut, y * rOut);
+      ctx.moveTo(Math.cos(ang) * rIn, Math.sin(ang) * rIn);
+      ctx.lineTo(Math.cos(ang) * rOut, Math.sin(ang) * rOut);
       ctx.stroke();
     }
 
     // orbiting particles
     for (const p of particles) {
       p.a += p.s * dt * (currentState === "idle" ? 0.4 : 1.3);
-      const rad = R * p.r;
+      const rad = sphereR * (p.r + 0.5);
       const x = Math.cos(p.a) * rad;
       const y = Math.sin(p.a) * rad;
       const tw = 0.4 + 0.6 * Math.abs(Math.sin(now / 400 + p.a * 4));
       ctx.fillStyle = `rgba(${palette.arc},${0.25 * tw * (activeBins ? 0.6 + energy : 1)})`;
       ctx.beginPath();
       ctx.arc(x, y, 1.4, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // slow travelling pulse along the arc
-    const pulsePos = now / 1400;
-    for (let k = 0; k < 3; k++) {
-      const pa = pulsePos + (k * Math.PI * 2) / 3;
-      const pr = R * (0.9 + 0.05 * Math.sin(now / 260 + k));
-      ctx.fillStyle = `rgba(${palette.bright},${0.35 + energy * 0.4})`;
-      ctx.beginPath();
-      ctx.arc(Math.cos(pa) * pr, Math.sin(pa) * pr, 2 + energy * 3, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore();

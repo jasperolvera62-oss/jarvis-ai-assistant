@@ -400,29 +400,24 @@ body {
   display: block;
 }
 
-.holo-wrap {
-  position: relative; z-index: 2;
-  text-align: center;
-  pointer-events: none;
-  margin-top: calc(var(--pulse) * -6px);
-  transition: margin-top 0.6s ease;
-}
-.core-name {
-  font-family: var(--disp); font-weight: 700;
-  font-size: clamp(26px, 3.4vw, 40px);
-  letter-spacing: 0.3em;
-  color: var(--cyan-bright);
-  text-shadow: 0 0 18px var(--cyan-glow), 0 0 46px rgba(53, 216, 255, 0.35);
-  filter: drop-shadow(0 0 8px rgba(53, 216, 255, 0.5));
-}
-.core-tag {
-  font-size: 10px; letter-spacing: 0.34em; color: var(--text-dim);
-  margin: 6px 0 10px;
-  text-shadow: 0 0 8px rgba(90, 180, 255, 0.3);
-}
 .core-sub {
+  position: absolute; left: 0; right: 0; bottom: 12px;
+  z-index: 2;
   display: flex; align-items: center; justify-content: center; gap: 18px;
-  font-size: 11px; letter-spacing: 0.2em;
+  font-size: 11px; letter-spacing: 0.22em;
+  pointer-events: none;
+}
+.core-sub::before {
+  content: "";
+  width: 130px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line-bright));
+  margin-right: 18px;
+}
+.core-sub::after {
+  content: "";
+  width: 130px; height: 1px;
+  background: linear-gradient(90deg, var(--line-bright), transparent);
+  margin-left: 18px;
 }
 .core-sub span:first-child { color: var(--green); text-shadow: 0 0 10px var(--green-glow); }
 .core-sub span:last-child { color: var(--cyan); text-shadow: 0 0 10px var(--cyan-glow); }
@@ -466,7 +461,7 @@ body {
 .crystal-command .crystal-label { color: var(--green); text-shadow: 0 0 8px var(--green-glow); }
 
 .thinking-viz {
-  position: absolute; z-index: 2; bottom: 26px; left: 50%; transform: translateX(-50%);
+  position: absolute; z-index: 2; bottom: 58px; left: 50%; transform: translateX(-50%);
   display: none; align-items: flex-end; gap: 3px;
   height: 22px; pointer-events: none;
 }
@@ -846,17 +841,17 @@ body.state-verifying .thinking-viz { display: flex; }
    ============================================================ */
 body.state-listening .sys-capsule,
 body.state-transcribing .sys-capsule { color: #9bffd4; border-color: rgba(47, 217, 160, 0.5); }
-body.state-thinking .core-name,
-body.state-planning .core-name,
-body.state-executing .core-name,
-body.state-verifying .core-name { color: var(--purple); text-shadow: 0 0 18px var(--purple-glow); }
-body.state-speaking .core-name { color: #fff; text-shadow: 0 0 22px var(--cyan-glow), 0 0 46px rgba(255, 255, 255, 0.3); }
-body.state-error .core-name { color: var(--red); text-shadow: 0 0 18px rgba(255, 77, 94, 0.6); }
+body.state-thinking .core-sub span,
+body.state-planning .core-sub span,
+body.state-executing .core-sub span,
+body.state-verifying .core-sub span { color: var(--purple); text-shadow: 0 0 10px var(--purple-glow); }
+body.state-speaking .core-sub span { color: #fff; text-shadow: 0 0 12px var(--cyan-glow); }
+body.state-error .core-sub span { color: var(--red); text-shadow: 0 0 10px rgba(255, 77, 94, 0.6); }
 body.state-error .sys-capsule { color: var(--red); border-color: rgba(255, 77, 94, 0.5); }
 
 /* serious mode accent */
 body.mode-serious .sys-capsule { color: var(--red); }
-body.mode-serious .core-name { color: var(--red); text-shadow: 0 0 18px rgba(255, 77, 94, 0.5); }
+body.mode-serious .core-sub span { color: var(--red); text-shadow: 0 0 10px rgba(255, 77, 94, 0.5); }
 
 /* idle drift — subtle motion so the HUD feels alive */
 body.state-idle .crystal-shard { animation-duration: 4.5s; }
@@ -866,7 +861,6 @@ body.state-idle .crystal-shard { animation-duration: 4.5s; }
    ============================================================ */
 @media (max-width: 1280px) {
   .workspace { grid-template-columns: 270px minmax(0, 1fr) 290px; gap: 10px; padding: 10px 14px; }
-  .tb-sub { display: none; }
 }
 @media (max-width: 1040px) {
   .workspace { grid-template-columns: 1fr; overflow-y: auto; }
